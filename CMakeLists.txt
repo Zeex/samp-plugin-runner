@@ -1,5 +1,7 @@
-project(plugin-runner)
+cmake_policy(SET CMP0048 NEW)
 cmake_minimum_required(VERSION 3.0)
+
+project(plugin-runner VERSION 1.0)
 
 list(APPEND CMAKE_MODULE_PATH
             ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
@@ -59,3 +61,17 @@ endif()
 if(UNIX)
   target_link_libraries(plugin-runner dl)
 endif()
+
+install(TARGETS plugin-runner RUNTIME DESTINATION .)
+install(DIRECTORY include DESTINATION .)
+
+set(CPACK_PACKAGE_NAME ${PROJECT_NAME})
+if(WIN32)
+  set(CPACK_PACKAGE_FILE_NAME ${CPACK_PACKAGE_NAME}-${PROJECT_VERSION}-win32)
+  set(CPACK_GENERATOR ZIP)
+elseif(UNIX)
+  set(CPACK_PACKAGE_FILE_NAME ${CPACK_PACKAGE_NAME}-${PROJECT_VERSION}-linux)
+  set(CPACK_GENERATOR TGZ)
+endif()
+
+include(CPack)
