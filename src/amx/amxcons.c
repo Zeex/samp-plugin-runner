@@ -219,7 +219,7 @@
   #define amx_putstr(s)   printf("%s",(s))
   #define amx_putchar(c)  putchar(c)
   #define amx_fflush()    fflush(stdout)
-  #define amx_getch()     getch()
+  #define amx_getch()     _getch()
   #define amx_gets(s,n)   fgets(s,n,stdin)
 
   int amx_termctl(int code,int value)

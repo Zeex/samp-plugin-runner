@@ -105,6 +105,7 @@ void *plugin_data[] {
   (void *)amx_functions // PLUGIN_DATA_AMX_EXPORTS
 };
 
+const char AMX_FILE_EXT[] = ".amx";
 #ifdef _WIN32
   const char PLUGIN_EXT[] = ".dll";
 #else
@@ -159,7 +160,7 @@ Plugin *LoadPlugin(std::string path) {
   return nullptr;
 }
 
-cell AMX_NATIVE_CALL CallLocalFunction(AMX *amx, cell *params) {
+cell AMX_NATIVE_CALL CallLocalFunction(AMX *amx, const cell *params) {
   char *function_name;
   amx_StrParam(amx, params[1], function_name);
 
@@ -216,7 +217,7 @@ cell AMX_NATIVE_CALL CallLocalFunction(AMX *amx, cell *params) {
   return retval;
 }
 
-bool CheckNatives(AMX *amx) {
+bool CheckAmxNatives(AMX *amx) {
   bool result = true;
   AMX_HEADER *hdr = reinterpret_cast<AMX_HEADER*>(amx->base);
   AMX_FUNCSTUBNT *natives =
@@ -236,31 +237,32 @@ bool CheckNatives(AMX *amx) {
   return result;
 }
 
-bool LoadAmx(AMX &amx, std::string amx_path) {
-  auto amx_error = aux_LoadProgram(&amx, amx_path.c_str(), nullptr);
+bool LoadAmx(AMX *amx, std::string amx_path) {
+  auto amx_error = aux_LoadProgram(amx, amx_path.c_str(), nullptr);
   if (amx_error != AMX_ERR_NONE) {
     printf("Could not load script: %s: %s\n",
            amx_path.c_str(), aux_StrError(amx_error));
     return false;
   }
 
-  amx_CoreInit(&amx);
-  amx_ConsoleInit(&amx);
-  amx_FloatInit(&amx);
-  amx_StringInit(&amx);
-  amx_FileInit(&amx);
+  printf("Loaded script: %s\n", amx_path.c_str());
+  amx_CoreInit(amx);
+  amx_ConsoleInit(amx);
+  amx_FloatInit(amx);
+  amx_StringInit(amx);
+  amx_FileInit(amx);
 
   static const AMX_NATIVE_INFO natives[] = {
     "CallLocalFunction", CallLocalFunction
   };
   int num_natives = static_cast<int>(sizeof(natives) / sizeof(natives[0]));
-  amx_error = amx_Register(&amx, natives, num_natives);
+  amx_error = amx_Register(amx, natives, num_natives);
   if (amx_error != AMX_ERR_NONE) {
     printf("Could not register natives: %s\n", aux_StrError(amx_error));
     return false;
   }
 
-  return CheckNatives(&amx);
+  return CheckAmxNatives(amx);
 }
 
 bool RunAmx(AMX *amx) {
@@ -309,8 +311,8 @@ void UnloadAmx(AMX *amx) {
 
 int main(int argc, char **argv) {
   if (argc < 2) {
-    fprintf(stderr, "Usage: %s [plugin1 [plugin2 [...]]] amx_file\n",
-            argv[0]);
+    fprintf(stderr,
+            "Usage: plugin-runner [plugin1 [plugin2 [...]]] amx_file\n");
     return EXIT_FAILURE;
   }
 
@@ -325,15 +327,14 @@ int main(int argc, char **argv) {
   }
 
   std::string amx_path = argv[argc - 1];
-  if (!EndsWith(amx_path, ".amx")) {
-    amx_path.append(".amx");
+  if (!EndsWith(amx_path, AMX_FILE_EXT)) {
+    amx_path.append(AMX_FILE_EXT);
   }
 
   AMX amx;
-  bool amx_loaded = LoadAmx(amx, amx_path);
+  bool amx_loaded = LoadAmx(&amx, amx_path);
 
   if (amx_loaded) {
-    printf("Loaded script: %s\n", amx_path.c_str());
     for (auto &plugin : plugins) {
       if (plugin->GetSupportsFlags() & SUPPORTS_AMX_NATIVES) {
         plugin->AmxLoad(&amx);
@@ -341,8 +342,6 @@ int main(int argc, char **argv) {
     }
     RunAmx(&amx);
     UnloadAmx(&amx);
-  } else {
-    printf("Failed to load script: %s\n", amx_path.c_str());
   }
 
   for (auto &plugin : plugins) {

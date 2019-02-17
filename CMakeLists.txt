@@ -7,16 +7,19 @@ list(APPEND CMAKE_MODULE_PATH
             ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 include(AMXConfig)
 
-if(CMAKE_SYSTEM_NAME STREQUAL Linux)
-  add_definitions(-DLINUX)
-  include_directories(src/amx)
-endif()
-
 add_definitions(
   -DPAWN_CELL_SIZE=32
   -DAMXCONSOLE_NOIDLE
   -DAMX_ALTPRINT
 )
+if(CMAKE_SYSTEM_NAME STREQUAL Linux)
+  add_definitions(-DLINUX)
+  include_directories(src/amx)
+endif()
+
+if(MSVC)
+  add_definitions(-D_CRT_SECURE_NO_WARNINGS)
+endif()
 
 set(AMX_SOURCES
   src/amx/amx.c
@@ -55,7 +58,8 @@ if(MSVC)
   # Incremental linking causes MSVC to genrate jmps in the AMX functions table,
   # and because of that jit/crashdetect think that amx_Exec() is hoooked by
   # something else.
-  set_property(TARGET plugin-runner APPEND_STRING PROPERTY LINK_FLAGS "/INCREMENTAL:NO")
+  set_property(TARGET plugin-runner APPEND_STRING PROPERTY
+               LINK_FLAGS "/INCREMENTAL:NO")
 endif()
 
 if(UNIX)

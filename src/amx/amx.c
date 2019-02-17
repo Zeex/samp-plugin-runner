@@ -54,6 +54,7 @@
 #include <stdarg.h>
 #include <stddef.h>     /* for wchar_t */
 #include <string.h>
+#include <wchar.h>      /* for wcslen() */
 #include "osdefs.h"
 #if defined LINUX || defined __FreeBSD__ || defined __OpenBSD__
   #include <sclinux.h>
@@ -64,9 +65,6 @@
     #include <sys/types.h>
     #include <sys/mman.h>
   #endif
-#endif
-#if defined __LCC__
-  #include <wchar.h>    /* for wcslen() */
 #endif
 #include "amx.h"
 #if (defined _Windows && !defined AMX_NODYNALOAD) || (defined JIT && __WIN32__)
@@ -1650,7 +1648,7 @@ int AMXAPI amx_PushString(AMX *amx, cell *amx_addr, cell **phys_addr, const char
   #if defined AMX_ANSIONLY
     numcells=strlen(string) + 1;
   #else
-    numcells= (use_wchar ? wcslen((const wchar_t*)string) : strlen(string)) + 1;
+    numcells=(use_wchar ? wcslen((const wchar_t*)string) : strlen(string)) + 1;
   #endif
   if (pack)
     numcells=(numcells+sizeof(cell)-1)/sizeof(cell);
@@ -3750,7 +3748,7 @@ int AMXAPI amx_SetString(cell *dest,const char *source,int pack,int use_wchar,si
     (void)use_wchar;
     len=strlen(source);
   #else
-    len= use_wchar ? wcslen((const wchar_t*)source) : strlen(source);
+    len=use_wchar ? wcslen((const wchar_t*)source) : strlen(source);
   #endif
   if (pack) {
     /* create a packed string */

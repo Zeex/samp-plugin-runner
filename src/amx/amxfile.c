@@ -41,9 +41,12 @@
 #endif
 #if defined __WIN32__ || defined _WIN32 || defined WIN32 || defined _Windows
   #include <windows.h>
+  #define lseek _lseek
+  #define fileno _fileno
 #endif
 #if defined LINUX || defined __FreeBSD__ || defined __OpenBSD__ || defined MACOS
   #include <dirent.h>
+  #include <unistd.h>
 #endif
 #include "osdefs.h"
 #include "amx.h"
@@ -303,26 +306,6 @@ static size_t fgets_char(FILE *fp, char *string, size_t max)
 
   return index;
 }
-
-#if defined __WIN32__ || defined _WIN32 || defined WIN32
-#if defined _UNICODE
-wchar_t *_wgetenv(wchar_t *name)
-{
-static wchar_t buffer[_MAX_PATH];
-  buffer[0]=L'\0';
-  GetEnvironmentVariable(name,buffer,sizeof buffer/sizeof(wchar_t));
-  return buffer[0]!=L'\0' ? buffer : NULL;
-}
-#else
-char *getenv(const char *name)
-{
-static char buffer[_MAX_PATH];
-  buffer[0]='\0';
-  GetEnvironmentVariable(name,buffer,sizeof buffer);
-  return buffer[0]!='\0' ? buffer : NULL;
-}
-#endif
-#endif
 
 static char *completename(TCHAR *dest, TCHAR *src, size_t size)
 {

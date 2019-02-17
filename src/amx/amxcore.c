@@ -37,6 +37,7 @@
 #include "amx.h"
 #if defined __WIN32__ || defined _WIN32 || defined WIN32 || defined _Windows
   #include <windows.h>
+  #define stricmp _stricmp
 #endif
 
 /* A few compilers do not provide the ANSI C standard "time" functions */
