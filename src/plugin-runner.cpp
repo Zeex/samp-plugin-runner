@@ -237,7 +237,7 @@ bool CheckAmxNatives(AMX *amx) {
   return result;
 }
 
-bool LoadAmx(AMX *amx, std::string amx_path) {
+bool LoadScript(AMX *amx, std::string amx_path) {
   auto amx_error = aux_LoadProgram(amx, amx_path.c_str(), nullptr);
   if (amx_error != AMX_ERR_NONE) {
     printf("Could not load script: %s: %s\n",
@@ -265,41 +265,18 @@ bool LoadAmx(AMX *amx, std::string amx_path) {
   return CheckAmxNatives(amx);
 }
 
-bool RunAmx(AMX *amx) {
-  cell retval;
-  int init_index;
-  int amx_error = amx_FindPublic(amx, "OnGameModeInit", &init_index);
-  if (amx_error == AMX_ERR_NONE) {
-    amx_error = amx_Exec(amx, &retval, init_index);
-    if (amx_error != AMX_ERR_NONE) {
-      printf("Error while executing OnGameModeInit: %s (%d)\n",
-             aux_StrError(amx_error), amx_error);
-      return false;
-    }
-  }
-
-  amx_error = amx_Exec(amx, &retval, AMX_EXEC_MAIN);
+int RunScript(AMX *amx) {
+  cell retval = 0;
+  int amx_error = amx_Exec(amx, &retval, AMX_EXEC_MAIN);
   if (amx_error != AMX_ERR_NONE) {
     printf("Error while executing main: %s (%d)\n",
            aux_StrError(amx_error), amx_error);
-    return false;
+    return -1;
   }
-
-  int exit_index;
-  amx_error = amx_FindPublic(amx, "OnGameModeExit", &exit_index);
-  if (amx_error == AMX_ERR_NONE) {
-    amx_error = amx_Exec(amx, &retval, exit_index);
-    if (amx_error != AMX_ERR_NONE) {
-      printf("Error while executing OnGameModeExit: %s (%d)\n",
-              aux_StrError(amx_error), amx_error);
-      return false;
-    }
-  }
-
-  return true;
+  return retval;
 }
 
-void UnloadAmx(AMX *amx) {
+void UnloadScript(AMX *amx) {
   amx_CoreCleanup(amx);
   amx_ConsoleCleanup(amx);
   amx_FloatCleanup(amx);
@@ -332,7 +309,8 @@ int main(int argc, char **argv) {
   }
 
   AMX amx;
-  bool amx_loaded = LoadAmx(&amx, amx_path);
+  bool amx_loaded = LoadScript(&amx, amx_path);
+  int exit_status = EXIT_SUCCESS;
 
   if (amx_loaded) {
     for (auto &plugin : plugins) {
@@ -340,8 +318,8 @@ int main(int argc, char **argv) {
         plugin->AmxLoad(&amx);
       }
     }
-    RunAmx(&amx);
-    UnloadAmx(&amx);
+    exit_status = RunScript(&amx);
+    UnloadScript(&amx);
   }
 
   for (auto &plugin : plugins) {
@@ -351,5 +329,5 @@ int main(int argc, char **argv) {
     plugin->Unload();
   }
 
-  return EXIT_SUCCESS;
+  return exit_status;
 }
