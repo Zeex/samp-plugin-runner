@@ -24,12 +24,11 @@
 /* Differences from the original file:
  * - ABORT() calls an external error handler via amx_RaiseExecError()
  * - ABORT() syncs registers with local variables before return
- * - CHKSTACK(), CHKMARGIN() and CHKHEAP() now use ABORT() instead return
+ * - CHKSTACK(), CHKMARGIN() and CHKHEAP() now use ABORT() instead of return
  * - amx->cip is updated after each instruction
- * - CALL.pri and JUMP.pri instructions have been removed
+ * - CALL.pri has been removed
  * - LREF.S.* and SREF.S.* instructions sync STK and FRM before dereferencing
  *   the pointer (because of possible crash)
- * - LCTRL 0xFF always sets PRI to 1
  */
 
 #if BUILD_PLATFORM == WINDOWS && BUILD_TYPE == RELEASE && BUILD_COMPILER == MSVC && PAWN_CELL_SIZE == 64
@@ -2045,9 +2044,6 @@ static const void * const amx_opcodelist[] = {
     case 6:
       pri=(cell)((unsigned char *)cip - code);
       break;
-    case 0xFF:
-      pri=1;
-      break;
     } /* switch */
     NEXT(cip);
   op_sctrl:
@@ -2153,8 +2149,7 @@ static const void * const amx_opcodelist[] = {
     cip=JUMPABS(code, cip);                     /* jump to the address */
     NEXT(cip);
   op_call_pri:
-    PUSH((unsigned char *)cip-code);
-    cip=(cell *)(code+(int)pri);
+    assert(0);
     NEXT(cip);
   op_jump:
     /* since the GETPARAM() macro modifies cip, you cannot
@@ -2825,7 +2820,7 @@ int AMXAPI amx_Exec(AMX *amx, cell *retval, int index)
 
 #else
 
-  for ( ;; ) {	
+  for ( ;; ) {
     amx->cip=(cell)cip-(cell)code;
     op=(OPCODE) *cip++;
     switch (op) {
@@ -2864,7 +2859,7 @@ int AMXAPI amx_Exec(AMX *amx, cell *retval, int index)
       break;
     case OP_LREF_S_ALT:
       amx->frm=frm;
-      amx->stk=stk;  
+      amx->stk=stk;
       GETPARAM(offs);
       offs=*(cell *)(data+(int)frm+(int)offs);
       alt=*(cell *)(data+(int)offs);
@@ -3028,9 +3023,6 @@ int AMXAPI amx_Exec(AMX *amx, cell *retval, int index)
         break;
       case 6:
         pri=(cell)((unsigned char *)cip - code);
-        break;
-      case 0xFF:
-        pri=1;
         break;
       } /* switch */
       break;
