@@ -1,7 +1,8 @@
-cmake_policy(SET CMP0048 NEW)
-cmake_minimum_required(VERSION 3.0)
+cmake_minimum_required(VERSION 2.8.12)
+project(plugin-runner)
 
-project(plugin-runner VERSION 1.0)
+set(PLUGIN_RUNNER_VERSION 1.1)
+set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 list(APPEND CMAKE_MODULE_PATH
             ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
@@ -41,17 +42,27 @@ if(UNIX)
   list(APPEND AMX_SOURCES src/amx/getch.c)
 endif()
 
+add_library(amx STATIC ${AMX_SOURCES})
+
+if(UNIX)
+  set_property(TARGET amx APPEND_STRING PROPERTY
+               COMPILE_FLAGS "-m32 -Wno-attributes")
+  target_link_libraries(amx -m32)
+endif()
+
 add_executable(plugin-runner
-  ${AMX_SOURCES}
   src/plugin-runner.cpp
   src/plugin.cpp
   src/plugin.h
   src/plugincommon.h
 )
 
+target_link_libraries(plugin-runner amx)
+
 if(UNIX)
-  target_compile_options(plugin-runner PRIVATE -m32 -Wno-attributes)
-  target_link_libraries(plugin-runner -m32)
+  set_property(TARGET plugin-runner APPEND_STRING PROPERTY
+               COMPILE_FLAGS "-std=c++11 -m32 -Wno-attributes")
+  target_link_libraries(plugin-runner -m32 dl)
 endif()
 
 if(MSVC)
@@ -62,19 +73,15 @@ if(MSVC)
                LINK_FLAGS "/INCREMENTAL:NO")
 endif()
 
-if(UNIX)
-  target_link_libraries(plugin-runner dl)
-endif()
-
 install(TARGETS plugin-runner RUNTIME DESTINATION .)
 install(DIRECTORY include DESTINATION .)
 
 set(CPACK_PACKAGE_NAME ${PROJECT_NAME})
 if(WIN32)
-  set(CPACK_PACKAGE_FILE_NAME ${CPACK_PACKAGE_NAME}-${PROJECT_VERSION}-win32)
+  set(CPACK_PACKAGE_FILE_NAME ${CPACK_PACKAGE_NAME}-${PLUGIN_RUNNER_VERSION}-win32)
   set(CPACK_GENERATOR ZIP)
 elseif(UNIX)
-  set(CPACK_PACKAGE_FILE_NAME ${CPACK_PACKAGE_NAME}-${PROJECT_VERSION}-linux)
+  set(CPACK_PACKAGE_FILE_NAME ${CPACK_PACKAGE_NAME}-${PLUGIN_RUNNER_VERSION}-linux)
   set(CPACK_GENERATOR TGZ)
 endif()
 

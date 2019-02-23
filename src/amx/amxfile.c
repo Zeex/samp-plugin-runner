@@ -55,8 +55,6 @@
 
 #if !defined AMXFILE_VAR
   #define AMXFILE_VAR   "AMXFILE"
-#elif AMXFILE_VAR==""
-  #undef AMXFILE_VAR
 #endif
 
 #if defined _UNICODE
