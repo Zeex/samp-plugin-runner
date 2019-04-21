@@ -1573,7 +1573,8 @@ int AMXAPI amx_Register(AMX *amx, const AMX_NATIVE_INFO *list, int number)
   for (i=0; i<numnatives; i++) {
     if (func->address==0) {
       /* this function is not yet located */
-      funcptr=(list!=NULL) ? findfunction(GETENTRYNAME(hdr,func),list,number) : NULL;
+      const char *name = GETENTRYNAME(hdr, func);
+      funcptr=(list!=NULL) ? findfunction(name, list, number) : NULL;
       if (funcptr!=NULL)
         func->address=(ucell)funcptr;
       else

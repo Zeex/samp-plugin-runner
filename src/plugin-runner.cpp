@@ -256,13 +256,9 @@ bool LoadScript(AMX *amx, std::string amx_path) {
     "CallLocalFunction", CallLocalFunction
   };
   int num_natives = static_cast<int>(sizeof(natives) / sizeof(natives[0]));
-  amx_error = amx_Register(amx, natives, num_natives);
-  if (amx_error != AMX_ERR_NONE) {
-    printf("Could not register natives: %s\n", aux_StrError(amx_error));
-    return false;
-  }
+  amx_Register(amx, natives, num_natives);
 
-  return CheckAmxNatives(amx);
+  return true;
 }
 
 int RunScript(AMX *amx) {
@@ -318,7 +314,9 @@ int main(int argc, char **argv) {
         plugin->AmxLoad(&amx);
       }
     }
-    exit_status = RunScript(&amx);
+    if (CheckAmxNatives(&amx)) {
+      exit_status = RunScript(&amx);
+    }
     UnloadScript(&amx);
   }
 
