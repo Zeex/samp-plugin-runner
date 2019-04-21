@@ -34,20 +34,20 @@
 
 Plugin::Plugin()
  : is_loaded_(false),
-   handle_(0),
-   AmxLoad_(0),
-   AmxUnload_(0),
-   ProcessTick_(0)
+   handle_(),
+   AmxLoad_(),
+   AmxUnload_(),
+   ProcessTick_()
 {
 }
 
 Plugin::Plugin(const std::string &path)
  : path_(path),
    is_loaded_(false),
-   handle_(0),
-   AmxLoad_(0),
-   AmxUnload_(0),
-   ProcessTick_(0)
+   handle_(),
+   AmxLoad_(),
+   AmxUnload_(),
+   ProcessTick_()
 {
 }
 
@@ -70,7 +70,7 @@ PluginError Plugin::Load(const std::string &filename, void **ppData) {
       handle_ = dlopen(filename.c_str(), RTLD_NOW);
     #endif
 
-    if (handle_ == 0) {
+    if (handle_ == nullptr) {
       #ifdef _WIN32
         DWORD error = GetLastError();
         DWORD flags = FORMAT_MESSAGE_ARGUMENT_ARRAY
@@ -92,7 +92,7 @@ PluginError Plugin::Load(const std::string &filename, void **ppData) {
     }
 
     Supports_t Supports = (Supports_t)GetSymbol("Supports");
-    if (Supports == 0) {
+    if (Supports == nullptr) {
       return PLUGIN_ERROR_FAILED;
     }
 
@@ -103,21 +103,21 @@ PluginError Plugin::Load(const std::string &filename, void **ppData) {
     }
 
     if ((supports_flags_ & SUPPORTS_AMX_NATIVES) != 0) {
-      if ((AmxLoad_ = (AmxLoad_t)GetSymbol("AmxLoad")) == 0
-          || (AmxUnload_ = (AmxUnload_t)GetSymbol("AmxUnload")) == 0) {
+      if ((AmxLoad_ = (AmxLoad_t)GetSymbol("AmxLoad")) == nullptr
+          || (AmxUnload_ = (AmxUnload_t)GetSymbol("AmxUnload")) == nullptr) {
         return PLUGIN_ERROR_API;
       }
     }
 
     if ((supports_flags_ & SUPPORTS_PROCESS_TICK) != 0) {
       ProcessTick_ = (ProcessTick_t)GetSymbol("ProcessTick");
-      if (ProcessTick_ == 0) {
+      if (ProcessTick_ == nullptr) {
         return PLUGIN_ERROR_API;
       }
     }
 
     Load_t Load = (Load_t)GetSymbol("Load");
-    if (Load == 0) {
+    if (Load == nullptr) {
       return PLUGIN_ERROR_API;
     }
 
@@ -134,7 +134,7 @@ PluginError Plugin::Load(const std::string &filename, void **ppData) {
 void Plugin::Unload() {
   if (is_loaded_) {
     Unload_t Unload = (Unload_t)GetSymbol("Unload");
-    if (Unload != 0) {
+    if (Unload != nullptr) {
       Unload();
     }
     #ifdef _WIN32
@@ -154,21 +154,21 @@ void *Plugin::GetSymbol(const std::string &name) const {
 }
 
 int Plugin::AmxLoad(AMX *amx) const {
-  if (AmxLoad_ != 0) {
+  if (AmxLoad_ != nullptr) {
     return AmxLoad_(amx);
   }
   return AMX_ERR_NONE;
 }
 
 int Plugin::AmxUnload(AMX *amx) const {
-  if (AmxUnload_ != 0) {
+  if (AmxUnload_ != nullptr) {
     return AmxUnload_(amx);
   }
   return AMX_ERR_NONE;
 }
 
 void Plugin::ProcessTick() const {
-  if (ProcessTick_ != 0) {
+  if (ProcessTick_ != nullptr) {
     ProcessTick_();
   }
 }

@@ -101,7 +101,21 @@ const void *amx_functions[] = {
 
 void *plugin_data[] {
   (void *)logprintf,    // PLUGIN_DATA_LOGPRINTF
-  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+  nullptr,
+  nullptr,
+  nullptr,
+  nullptr,
+  nullptr,
+  nullptr,
+  nullptr,
+  nullptr,
+  nullptr,
+  nullptr,
+  nullptr,
+  nullptr,
+  nullptr,
+  nullptr,
+  nullptr,
   (void *)amx_functions // PLUGIN_DATA_AMX_EXPORTS
 };
 
@@ -129,7 +143,7 @@ bool EndsWith(const std::string &s1, const std::string &s2) {
 
 Plugin *LoadPlugin(std::string path) {
   auto plugin = new(std::nothrow) Plugin;
-  if (plugin == 0) {
+  if (plugin == nullptr) {
     return nullptr;
   }
 
