@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 2.8.12)
 project(plugin-runner)
 
-set(PLUGIN_RUNNER_VERSION 1.1.1)
+set(PLUGIN_RUNNER_VERSION 1.1.2)
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 list(APPEND CMAKE_MODULE_PATH
