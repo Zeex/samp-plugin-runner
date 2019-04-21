@@ -63,6 +63,12 @@ if(UNIX)
   set_property(TARGET plugin-runner APPEND_STRING PROPERTY
                COMPILE_FLAGS "-std=c++11 -m32 -Wno-attributes")
   target_link_libraries(plugin-runner -m32 dl)
+  if(CMAKE_SYSTEM_NAME STREQUAL Linux)
+    target_link_libraries(plugin-runner
+      -fvisibility=hidden
+      -Wl,--no-export-dynamic # Don't expose internal symbols to plugins
+    )
+  endif()
 endif()
 
 if(MSVC)
