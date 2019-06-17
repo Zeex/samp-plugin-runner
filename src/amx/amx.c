@@ -3590,6 +3590,7 @@ int AMXAPI amx_Exec(AMX *amx, cell *retval, int index)
       /* case OP_FILE:          should not occur during execution
        * case OP_CASETBL:       should not occur during execution
        */
+      printf("Invalid opcode: %d\n", op);
       assert(0);
       ABORT(amx,AMX_ERR_INVINSTR);
     } /* switch */

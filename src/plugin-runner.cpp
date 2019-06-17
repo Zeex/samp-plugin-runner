@@ -23,17 +23,25 @@
 // POSSIBILITY OF SUCH DAMAGE.
 
 #include <algorithm>
+#include <atomic>
+#include <chrono>
 #include <cstdarg>
 #include <cstdio>
 #include <cstring>
 #include <list>
 #include <new>
 #include <string>
+#include <thread>
 #include <vector>
 #include "plugin.h"
 #include "plugincommon.h"
 #include "amx/amx.h"
 #include "amx/amxaux.h"
+#ifdef _WIN32
+  #include <windows.h>
+#else
+  #include <signal.h>
+#endif
 
 extern "C" {
   int AMXEXPORT amx_ConsoleInit(AMX *amx);
@@ -125,6 +133,8 @@ const char AMX_FILE_EXT[] = ".amx";
 #else
   const char PLUGIN_EXT[] = ".so";
 #endif
+
+std::atomic<bool> process_ticks = false;
 
 void logprintf(const char *format, ...) {
   va_list args;
@@ -275,7 +285,7 @@ bool LoadScript(AMX *amx, std::string amx_path) {
   return true;
 }
 
-int RunScript(AMX *amx) {
+int RunScriptMain(AMX *amx) {
   cell retval = 0;
   int amx_error = amx_Exec(amx, &retval, AMX_EXEC_MAIN);
   if (amx_error != AMX_ERR_NONE) {
@@ -293,6 +303,15 @@ void UnloadScript(AMX *amx) {
   amx_StringCleanup(amx);
   amx_FileCleanup(amx);
 }
+
+#ifdef _WIN32
+  BOOL WINAPI HandleConsoleCtrl(DWORD dwCtrlType) {
+    printf("Caught Ctrl-C\n");
+    process_ticks = false;
+    return TRUE;
+  }
+#else
+#endif
 
 } // anonymous namespace
 
@@ -318,28 +337,54 @@ int main(int argc, char **argv) {
     amx_path.append(AMX_FILE_EXT);
   }
 
-  AMX amx;
-  bool amx_loaded = LoadScript(&amx, amx_path);
+  AMX amx = {0};
   int exit_status = EXIT_SUCCESS;
 
-  if (amx_loaded) {
+  if (LoadScript(&amx, amx_path)) {
     for (auto &plugin : plugins) {
       if (plugin->GetSupportsFlags() & SUPPORTS_AMX_NATIVES) {
         plugin->AmxLoad(&amx);
       }
+      if (plugin->GetSupportsFlags() & SUPPORTS_PROCESS_TICK) {
+        process_ticks = true;
+      }
     }
     if (CheckAmxNatives(&amx)) {
-      exit_status = RunScript(&amx);
+      exit_status = RunScriptMain(&amx);
     }
     UnloadScript(&amx);
   }
 
+#ifdef _WIN32
+  SetConsoleCtrlHandler(HandleConsoleCtrl, TRUE);
+#else
+
+#endif
+
+  if (process_ticks) {
+    printf("Running indefinitely because ProcessTick() was requested\n");
+    while (process_ticks) {
+      std::this_thread::sleep_for(std::chrono::milliseconds(5));
+      for (auto &plugin : plugins) {
+        if (plugin->IsLoaded()
+            && plugin->GetSupportsFlags() & SUPPORTS_PROCESS_TICK) {
+          plugin->ProcessTick();
+        }
+      }
+    }
+  }
+
   for (auto &plugin : plugins) {
-    if (amx_loaded && plugin->GetSupportsFlags() & SUPPORTS_AMX_NATIVES) {
+    if (!plugin->IsLoaded()) {
+      continue;
+    }
+    if (amx.base != nullptr
+        && plugin->GetSupportsFlags() & SUPPORTS_AMX_NATIVES) {
       plugin->AmxUnload(&amx);
     }
     plugin->Unload();
   }
+  plugins.erase(plugins.begin(), plugins.end());
 
   return exit_status;
 }
