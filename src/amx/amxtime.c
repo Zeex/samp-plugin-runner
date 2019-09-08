@@ -68,10 +68,9 @@ static unsigned long gettimestamp(void)
     value=timeGetTime();        /* this value is already in milliseconds */
   #else
     value=(cell)clock();
-    #if CLOCKS_PER_SEC!=1000
+    if (CLOCKS_PER_SEC!=1000)
       /* convert to milliseconds */
       value=(cell)((1000L * (value+CLOCKS_PER_SEC/2)) / CLOCKS_PER_SEC);
-    #endif
   #endif
   return value;
 }

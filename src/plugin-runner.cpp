@@ -131,7 +131,7 @@ const char AMX_FILE_EXT[] = ".amx";
   const char PLUGIN_EXT[] = ".so";
 #endif
 
-std::atomic<bool> process_ticks = false;
+std::atomic<bool> process_ticks{false};
 
 void logprintf(const char *format, ...) {
   va_list args;
