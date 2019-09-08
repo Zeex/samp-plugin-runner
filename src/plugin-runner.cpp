@@ -181,7 +181,12 @@ Plugin *LoadPlugin(std::string path) {
   return nullptr;
 }
 
-cell AMX_NATIVE_CALL CallLocalFunction(AMX *amx, const cell *params) {
+cell AMX_NATIVE_CALL n_ExitProcess(AMX *amx, const cell *params) {
+  std::exit(params[1]);
+  return 0;
+}
+
+cell AMX_NATIVE_CALL n_CallLocalFunction(AMX *amx, const cell *params) {
   char *function_name;
   amx_StrParam(amx, params[1], function_name);
 
@@ -274,7 +279,8 @@ bool LoadScript(AMX *amx, std::string amx_path) {
   amx_FileInit(amx);
 
   static const AMX_NATIVE_INFO natives[] = {
-    "CallLocalFunction", CallLocalFunction
+    "ExitProcess", n_ExitProcess,
+    "CallLocalFunction", n_CallLocalFunction
   };
   int num_natives = static_cast<int>(sizeof(natives) / sizeof(natives[0]));
   amx_Register(amx, natives, num_natives);
