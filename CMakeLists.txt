@@ -12,6 +12,7 @@ add_definitions(
   -DPAWN_CELL_SIZE=32
   -DAMXCONSOLE_NOIDLE
   -DAMX_ALTPRINT
+  -DAMXTIME_NOIDLE
 )
 if(CMAKE_SYSTEM_NAME STREQUAL Linux)
   add_definitions(-DLINUX)
@@ -31,6 +32,7 @@ set(AMX_SOURCES
   src/amx/amxcore.c
   src/amx/amxfile.c
   src/amx/amxstring.c
+  src/amx/amxtime.c
   src/amx/float.c
   src/amx/fpattern.h
   src/amx/getch.h

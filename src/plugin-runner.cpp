@@ -49,6 +49,8 @@ extern "C" {
   int AMXEXPORT amx_FloatCleanup(AMX *amx);
   int AMXEXPORT amx_StringInit(AMX *amx);
   int AMXEXPORT amx_StringCleanup(AMX *amx);
+  int AMXEXPORT amx_TimeInit(AMX *amx);
+  int AMXEXPORT amx_TimeCleanup(AMX *amx);
 }
 
 namespace {
