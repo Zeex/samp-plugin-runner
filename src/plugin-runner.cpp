@@ -37,11 +37,6 @@
 #include "plugincommon.h"
 #include "amx/amx.h"
 #include "amx/amxaux.h"
-#ifdef _WIN32
-  #include <windows.h>
-#else
-  #include <signal.h>
-#endif
 
 extern "C" {
   int AMXEXPORT amx_ConsoleInit(AMX *amx);
@@ -304,15 +299,6 @@ void UnloadScript(AMX *amx) {
   amx_FileCleanup(amx);
 }
 
-#ifdef _WIN32
-  BOOL WINAPI HandleConsoleCtrl(DWORD dwCtrlType) {
-    printf("Caught Ctrl-C\n");
-    process_ticks = false;
-    return TRUE;
-  }
-#else
-#endif
-
 } // anonymous namespace
 
 int main(int argc, char **argv) {
@@ -354,12 +340,6 @@ int main(int argc, char **argv) {
     }
     UnloadScript(&amx);
   }
-
-#ifdef _WIN32
-  SetConsoleCtrlHandler(HandleConsoleCtrl, TRUE);
-#else
-
-#endif
 
   if (process_ticks) {
     printf("Running indefinitely because ProcessTick() was requested\n");
