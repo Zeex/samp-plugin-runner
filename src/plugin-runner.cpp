@@ -158,20 +158,20 @@ Plugin *LoadPlugin(std::string path) {
 
   auto error = plugin->Load(path, plugin_data);
   if (plugin->IsLoaded()) {
-    printf("Loaded plugin: %s\n", path.c_str());
+    std::printf("Loaded plugin: %s\n", path.c_str());
     return plugin;
   }
 
-  printf("Could not load plugin: %s: ", path.c_str());
+  std::printf("Could not load plugin: %s: ", path.c_str());
   switch (error) {
     case PLUGIN_ERROR_FAILED:
-      printf("%s\n", plugin->GetFailMessage().c_str());
+      std::printf("%s\n", plugin->GetFailMessage().c_str());
       break;
     case PLUGIN_ERROR_VERSION:
-      printf("Unsupported version\n");
+      std::printf("Unsupported version\n");
       break;
     case PLUGIN_ERROR_API:
-      printf("Plugin does not conform to acrhitecture\n");
+      std::printf("Plugin does not conform to acrhitecture\n");
       break;
   }
 
@@ -249,7 +249,7 @@ bool CheckAmxNatives(AMX *amx) {
     if (n->address == 0) {
       char *name = reinterpret_cast<char*>(n->nameofs +
           reinterpret_cast<unsigned int>(hdr));
-      printf("Native function is not registered: %s\n", name);
+      std::printf("Native function is not registered: %s\n", name);
       result = false;
     }
   }
@@ -259,12 +259,12 @@ bool CheckAmxNatives(AMX *amx) {
 bool LoadScript(AMX *amx, std::string amx_path) {
   auto amx_error = aux_LoadProgram(amx, amx_path.c_str(), nullptr);
   if (amx_error != AMX_ERR_NONE) {
-    printf("Could not load script: %s: %s\n",
-           amx_path.c_str(), aux_StrError(amx_error));
+    std::printf("Could not load script: %s: %s\n",
+                amx_path.c_str(), aux_StrError(amx_error));
     return false;
   }
 
-  printf("Loaded script: %s\n", amx_path.c_str());
+  std::printf("Loaded script: %s\n", amx_path.c_str());
   amx_CoreInit(amx);
   amx_ConsoleInit(amx);
   amx_FloatInit(amx);
@@ -284,8 +284,8 @@ int RunScriptMain(AMX *amx) {
   cell retval = 0;
   int amx_error = amx_Exec(amx, &retval, AMX_EXEC_MAIN);
   if (amx_error != AMX_ERR_NONE) {
-    printf("Error while executing main: %s (%d)\n",
-           aux_StrError(amx_error), amx_error);
+    std::printf("Error while executing main: %s (%d)\n",
+                aux_StrError(amx_error), amx_error);
     return -1;
   }
   return retval;
@@ -303,8 +303,8 @@ void UnloadScript(AMX *amx) {
 
 int main(int argc, char **argv) {
   if (argc < 2) {
-    fprintf(stderr,
-            "Usage: plugin-runner [plugin1 [plugin2 [...]]] amx_file\n");
+    std::fprintf(stderr,
+                 "Usage: plugin-runner [plugin1 [plugin2 [...]]] amx_file\n");
     return EXIT_FAILURE;
   }
 
@@ -342,7 +342,7 @@ int main(int argc, char **argv) {
   }
 
   if (process_ticks) {
-    printf("Running indefinitely because ProcessTick() was requested\n");
+    std::printf("Running indefinitely because ProcessTick() was requested\n");
     while (process_ticks) {
       std::this_thread::sleep_for(std::chrono::milliseconds(5));
       for (auto &plugin : plugins) {
