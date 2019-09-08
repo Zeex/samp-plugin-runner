@@ -1,0 +1,47 @@
+version: '{build}'
+
+image:
+  - Visual Studio 2017
+  - Ubuntu
+
+configuration:
+  - RelWithDebInfo
+
+for:
+  - matrix:
+      only:
+        - image: Visual Studio 2017
+    build_script:
+      - cmake . -G "Visual Studio 15 2017"
+      - cmake --build . --config %CONFIGURATION%
+      - cmake --build . --config %CONFIGURATION% --target package
+    artifacts:
+      - path: plugin-runner-*-win32.zip
+        name: Binaries
+    on_failure:
+      - type Testing\Temporary\LastTest.log
+  - matrix:
+      only:
+        - image: Ubuntu
+    install:
+      - sudo apt-get update -q
+      - sudo apt-get install -y gcc gcc-multilib g++ g++-multilib cmake
+    build_script:
+      - cmake . -DCMAKE_BUILD_TYPE=$CONFIGURATION -DCMAKE_C_FLAGS=-m32 -DCMAKE_CXX_FLAGS=-m32
+      - make
+      - make package
+    artifacts:
+      - path: plugin-runner-*-linux.tar.gz
+        name: Binaries
+    on_failure:
+      - cat Testing/Temporary/LastTest.log
+
+deploy:
+  description: '<Put release description here>'
+  provider: GitHub
+  auth_token:
+    secure: isvcGTZ1IAHEQ2gNE1k0tiuSbjAxcOVuXswEiIE
+  artifact: /plugin-runner-.*-(linux\.tar\.gz|win32\.zip)/
+  draft: true
+  on:
+    appveyor_repo_tag: true
