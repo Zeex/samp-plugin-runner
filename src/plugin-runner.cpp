@@ -310,9 +310,22 @@ void UnloadScript(AMX *amx) {
 } // anonymous namespace
 
 int main(int argc, char **argv) {
+  // Find the start of config options (`--`).
+  int opts = 0;
+  for (int i = 1; i < argc; i++) {
+    if (strcmp(argv[i], "--") == 0) {
+      opts = i + 1;
+      if (opts == argc) {
+        opts = 0; // `--` with no following parameters.
+      }
+      argc = i; // Remainder of the code stops before `--`.
+      break;
+    }
+  }
+
   if (argc < 2) {
     std::fprintf(stderr,
-                 "Usage: plugin-runner [plugin1 [plugin2 [...]]] amx_file\n");
+                 "Usage: plugin-runner [plugin1 [plugin2 [...]]] amx_file [-- opt1 [opt2 [...]]]\n");
     return EXIT_FAILURE;
   }
 
