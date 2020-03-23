@@ -69,6 +69,7 @@ if(UNIX)
     target_link_libraries(plugin-runner
       -fvisibility=hidden
       -Wl,--no-export-dynamic # Don't expose internal symbols to plugins
+      -pthread
     )
   endif()
 endif()
