@@ -20,5 +20,9 @@ Pass config options (fake `server.cfg`) with `--`:
 plugin-runner path/to/plugin path/to/script.amx -- "port 8888" "long_call_time 2"
 ```
 
+Note that no `--` will result in no `server.cfg` existing, `--` with no options
+following will result in an empty `server.cfg` being generated, and options
+being given will obviously be written to the file.
+
 [build_url]: https://ci.appveyor.com/project/Zeex/plugin-runner/branch/master
 [build_badge_url]: https://ci.appveyor.com/api/projects/status/qutulepfiep5y06i/branch/master?svg=true

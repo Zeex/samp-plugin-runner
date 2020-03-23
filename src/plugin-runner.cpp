@@ -33,6 +33,7 @@
 #include <string>
 #include <thread>
 #include <vector>
+#include <fstream>
 #include "plugin.h"
 #include "plugincommon.h"
 #include "amx/amx.h"
@@ -63,8 +64,8 @@ const void *amx_functions[] = {
   nullptr,
   (void *)amx_Allot,
   (void *)amx_Callback,
-	(void *)amx_Cleanup,
-	(void *)amx_Clone,
+  (void *)amx_Cleanup,
+  (void *)amx_Clone,
   (void *)amx_Exec,
   (void *)amx_FindNative,
   (void *)amx_FindPublic,
@@ -307,17 +308,29 @@ void UnloadScript(AMX *amx) {
   amx_FileCleanup(amx);
 }
 
+bool GenerateConfig(int optc, char **optv) {
+  // Generate a new `server.cfg` file with the given options in, one per line.
+  // This is because some plugins load the file and read from it.  It's easier
+  // to just create the file than to hook all the possible file load methods.
+  std::ofstream stream("server.cfg", std::ofstream::trunc | std::ofstream::out);
+  if (!stream.is_open()) {
+    return false;
+  }
+  for (int i = 0; i < optc; i++) {
+    stream << optv[i] << std::endl;
+  }
+  stream.close();
+  return true;
+}
+
 } // anonymous namespace
 
 int main(int argc, char **argv) {
   // Find the start of config options (`--`).
-  int opts = 0;
+  int optc = argc;
   for (int i = 1; i < argc; i++) {
     if (strcmp(argv[i], "--") == 0) {
-      opts = i + 1;
-      if (opts == argc) {
-        opts = 0; // `--` with no following parameters.
-      }
+      optc = argc;
       argc = i; // Remainder of the code stops before `--`.
       break;
     }
@@ -326,6 +339,17 @@ int main(int argc, char **argv) {
   if (argc < 2) {
     std::fprintf(stderr,
                  "Usage: plugin-runner [plugin1 [plugin2 [...]]] amx_file [-- opt1 [opt2 [...]]]\n");
+    return EXIT_FAILURE;
+  }
+
+  if (argc == optc) {
+    // No options given.  Ensure the file is missing (tests plugins check that).
+    remove("server.cfg");
+  }
+  // Generate the (possibly empty) file.
+  else if (!GenerateConfig(optc - argc - 1, argv + argc + 1)) {
+    std::fprintf(stderr,
+                 "Error: Could not write settings in `server.cfg`\n");
     return EXIT_FAILURE;
   }
 
